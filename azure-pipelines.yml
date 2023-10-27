@@ -1,0 +1,41 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- '*'
+
+pr:
+- '*'
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  mavenVersion: '3.8.6'
+
+steps:
+- task: UseJavaVersion@0
+  inputs:
+    version: '11'
+    addToPath: true
+
+- task: UseMaven@0
+  inputs:
+    mavenVersionOption: 'Path'
+    mavenDirectory: $(Agent.ToolsDirectory)/maven/$(mavenVersion)
+    mavenSetM2Home: false
+
+- script: 'mvn clean package'
+  displayName: 'Build with Maven'
+
+- task: CopyFiles@2
+  inputs:
+    SourceFolder: '$(System.DefaultWorkingDirectory)'
+    Contents: '**/target/*.war'
+    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+
+- publish: $(Build.ArtifactStagingDirectory)
+  artifact: drop
+
