@@ -15,27 +15,29 @@ pool:
 variables:
   mavenVersion: '3.8.6'
 
-steps:
-- task: UseJavaVersion@0
-  inputs:
-    version: '11'
-    addToPath: true
+stages:
+- stage: Build
+  jobs:
+  - job: Build
+    displayName: 'Build Maven Project'
+    steps:
+    - task: UseJavaVersion@0
+      inputs:
+        version: '11'
+        addToPath: true
 
-- task: UseMaven@0
-  inputs:
-    mavenVersionOption: 'Path'
-    mavenDirectory: $(Agent.ToolsDirectory)/maven/$(mavenVersion)
-    mavenSetM2Home: false
+    - task: UseMaven@0
+      inputs:
+        mavenVersionOption: 'Path'
+        mavenDirectory: $(Agent.ToolsDirectory)/maven/$(mavenVersion)
+        mavenSetM2Home: false
 
-- script: 'mvn clean package'
-  displayName: 'Build with Maven'
+    - script: 'mvn clean package'
+      displayName: 'Build with Maven'
 
-- task: CopyFiles@2
-  inputs:
-    SourceFolder: '$(System.DefaultWorkingDirectory)'
-    Contents: '**/target/*.war'
-    TargetFolder: '$(Build.ArtifactStagingDirectory)'
+    - task: PublishBuildArtifacts@1
+      inputs:
+        pathtoPublish: '$(System.DefaultWorkingDirectory)/target'
+        artifactName: 'drop'
 
-- publish: $(Build.ArtifactStagingDirectory)
-  artifact: drop
 
